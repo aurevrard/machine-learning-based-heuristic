@@ -26,13 +26,13 @@ class UKPInstance:
 
 
 def ukp_family(m, k):
-    """Instance F(m, k): n = 2k, b = 2m, a_i = m+k-i+1, c_i = 2a_i - 1."""
+    """Instance F(m, k): b = 2m, weights m+k, ..., m-k+1 except m (n = 2k-1), c_i = 2a_i - 1."""
     assert k >= 2 and m >= k + 1
-    n = 2 * k
-    a = [m + k - i + 1 for i in range(1, n + 1)]
+    a = [w for w in range(m + k, m - k, -1) if w != m]
     c = [2 * ai - 1 for ai in a]
+    n = len(a)                                  # n = 2k - 1
     x_star = [0] * n
-    x_star[k - 1] = x_star[k + 1] = 1          # items k and k+2 (1-based)
+    x_star[k - 1] = x_star[k] = 1               # items k and k+1 (1-based): weights m+1 and m-1
     return UKPInstance(a, c, 2 * m, 4 * m - 2, x_star, f"F({m},{k})")
 
 
@@ -56,7 +56,7 @@ def dp_opt(inst):
 
 
 if __name__ == "__main__":
-    # Validation test: closed form == DP, x* feasible, Greedy value as in Lemma 1
+    # Validation test: closed form == DP, x* feasible, Greedy value as in Section 1
     for k in range(2, 8):
         for m in range(k + 1, 60):
             inst = ukp_family(m, k)
@@ -65,9 +65,9 @@ if __name__ == "__main__":
             assert greedy(inst)[1] == 2 * m + 2 * k - 1
     print("All tests passed.")
 
-    # Table of the report (n = 10)
+    # Table of the report (k = 6, n = 11)
     print(f"{'m':>6} {'b':>6} {'greedy':>7} {'opt':>6} {'ratio':>7}")
-    for m in [6, 10, 50, 100, 1000]:
-        inst = ukp_family(m, 5)
+    for m in [10, 50, 100, 1000]:
+        inst = ukp_family(m, 6)
         _, fg = greedy(inst)
         print(f"{m:>6} {inst.b:>6} {fg:>7} {inst.f_star:>6} {fg / inst.f_star:>7.4f}")
